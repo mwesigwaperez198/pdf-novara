@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useRef, useCallback } from 'react';
 import { useEditorStore } from '../../store/useEditorStore';
 import type { PageObject, TextObjectData, TextContentItem } from '../../core/types/document';
 
@@ -22,7 +22,6 @@ export function AnnotationLayer({
   const selectedElements = useEditorStore((s) => s.selectedElements);
   const selectElement = useEditorStore((s) => s.selectElement);
   const layerRef = useRef<HTMLDivElement>(null);
-  const [editingText, setEditingText] = useState<string | null>(null);
 
   const handleCanvasClick = useCallback(
     (e: React.MouseEvent) => {
@@ -118,18 +117,18 @@ export function AnnotationLayer({
             <div
               className="w-full h-full"
               style={{
-                border: `${(obj.data as PageObject['data'] & { strokeWidth?: number }).strokeWidth ?? 2}px solid ${
-                  (obj.data as PageObject['data'] & { strokeColor?: string }).strokeColor ?? '#000'
+                border: `${(obj.data as { strokeWidth?: number }).strokeWidth ?? 2}px solid ${
+                  (obj.data as { strokeColor?: string }).strokeColor ?? '#000'
                 }`,
-                borderRadius: obj.data.shapeType === 'circle' ? '50%' : '0',
-                backgroundColor: (obj.data as PageObject['data'] & { fillColor?: string }).fillColor ?? 'transparent',
+                borderRadius: 'shapeType' in obj.data && (obj.data as { shapeType?: string }).shapeType === 'circle' ? '50%' : '0',
+                backgroundColor: (obj.data as { fillColor?: string }).fillColor ?? 'transparent',
               }}
             />
           )}
 
           {obj.type === 'image' && (
             <img
-              src={(obj.data as PageObject['data'] & { src?: string }).src}
+              src={(obj.data as { src?: string }).src}
               alt="Inserted"
               className="w-full h-full object-contain"
               draggable={false}

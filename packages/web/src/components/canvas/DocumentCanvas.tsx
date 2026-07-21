@@ -1,4 +1,4 @@
-import { useRef, useCallback, useEffect, useState } from 'react';
+import { useRef, useCallback, useEffect } from 'react';
 import { useDocumentStore } from '../../store/useDocumentStore';
 import { useEditorStore } from '../../store/useEditorStore';
 import { PageRenderer } from './PageRenderer';
@@ -13,7 +13,6 @@ export function DocumentCanvas() {
   const totalPages = useDocumentStore((s) => s.totalPages);
   const activeTool = useEditorStore((s) => s.activeTool);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [scrollProgress, setScrollProgress] = useState(0);
 
   const handleWheel = useCallback(
     (e: React.WheelEvent) => {
@@ -28,9 +27,6 @@ export function DocumentCanvas() {
 
   const handleScroll = useCallback(() => {
     if (!containerRef.current || !doc) return;
-    const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
-    const progress = scrollTop / (scrollHeight - clientHeight || 1);
-    setScrollProgress(progress);
 
     const pageElements = containerRef.current.querySelectorAll('[data-page-index]');
     let visiblePage = 0;
@@ -53,7 +49,7 @@ export function DocumentCanvas() {
     return () => container.removeEventListener('scroll', handleScroll);
   }, [handleScroll]);
 
-  const cursorStyle = {
+  const cursorStyle: Record<string, string> = {
     select: 'default',
     hand: 'grab',
     text: 'text',
@@ -64,7 +60,7 @@ export function DocumentCanvas() {
     highlight: 'crosshair',
     stamp: 'crosshair',
     signature: 'crosshair',
-  }[activeTool] ?? 'default';
+  };
 
   if (!doc) return null;
 
@@ -73,7 +69,7 @@ export function DocumentCanvas() {
       ref={containerRef}
       data-canvas-container
       className="h-full overflow-auto bg-surface-950"
-      style={{ cursor: cursorStyle }}
+      style={{ cursor: cursorStyle[activeTool] ?? 'default' }}
       onWheel={handleWheel}
     >
       <div className="flex flex-col items-center py-8 gap-4 min-h-full">

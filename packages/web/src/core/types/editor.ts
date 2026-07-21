@@ -1,4 +1,6 @@
-import { ToolType, ToolOptions } from './document';
+import type { ToolType, ToolOptions } from './document';
+
+export type { ToolType, ToolOptions };
 
 export interface EditorState {
   activeTool: ToolType;

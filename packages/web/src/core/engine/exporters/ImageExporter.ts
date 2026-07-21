@@ -1,4 +1,4 @@
-import { downloadBlob } from '../../utils/format';
+import { downloadBlob } from '../../../utils/format';
 
 export class ImageExporter {
   static async canvasToImage(

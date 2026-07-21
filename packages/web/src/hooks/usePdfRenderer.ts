@@ -1,18 +1,17 @@
-import { useCallback, useRef, useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { PdfRenderer } from '../core/engine/PdfRenderer';
 
 interface UsePdfRendererOptions {
   scale?: number;
   pageIndex: number;
-  containerRef: React.RefObject<HTMLDivElement>;
 }
 
-export function usePdfRenderer({ scale = 1.5, pageIndex, containerRef }: UsePdfRendererOptions) {
+export function usePdfRenderer({ scale = 1.5, pageIndex }: UsePdfRendererOptions) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rendererRef = useRef<PdfRenderer | null>(null);
   const renderTaskRef = useRef<unknown>(null);
 
-  const render = useCallback(async () => {
+  const render = async () => {
     if (!canvasRef.current || !rendererRef.current) return;
 
     if (renderTaskRef.current) {
@@ -25,15 +24,15 @@ export function usePdfRenderer({ scale = 1.5, pageIndex, containerRef }: UsePdfR
       if (err instanceof Error && err.message.includes('cancelled')) return;
       console.error('Render error:', err);
     }
-  }, [pageIndex, scale]);
+  };
 
   useEffect(() => {
     render();
   }, [render]);
 
-  const setRenderer = useCallback((renderer: PdfRenderer) => {
+  const setRenderer = (renderer: PdfRenderer) => {
     rendererRef.current = renderer;
-  }, []);
+  };
 
   return {
     canvasRef,

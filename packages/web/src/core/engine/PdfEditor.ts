@@ -1,4 +1,4 @@
-import { PDFDocument, PDFDict, PDFName, PDFString, degrees } from 'pdf-lib';
+import { PDFDocument, degrees } from 'pdf-lib';
 import type { PDFDocument as InternalPDFDocument, PDFPage as InternalPDFPage, PageObject, TextObjectData } from '../types/document';
 import { generateId } from '../../utils/format';
 
@@ -47,8 +47,8 @@ export class PdfEditor {
         keywords: [],
         creator: this.pdfDoc.getCreator() ?? '',
         producer: this.pdfDoc.getProducer() ?? '',
-        creationDate: this.pdfDoc.getCreationDate(),
-        modDate: this.pdfDoc.getModificationDate(),
+        creationDate: this.pdfDoc.getCreationDate() ?? null,
+        modDate: this.pdfDoc.getModificationDate() ?? null,
         pageCount,
       },
       createdAt: Date.now(),
@@ -79,12 +79,7 @@ export class PdfEditor {
     this.internalDoc.modifiedAt = Date.now();
   }
 
-  addTextToObject(
-    pageIndex: number,
-    x: number,
-    y: number,
-    textData: TextObjectData
-  ): PageObject {
+  addTextToObject(pageIndex: number, x: number, y: number, textData: TextObjectData): PageObject {
     if (!this.internalDoc) throw new Error('No document loaded');
 
     const page = this.internalDoc.pages[pageIndex];
@@ -108,11 +103,7 @@ export class PdfEditor {
     return obj;
   }
 
-  modifyTextObject(
-    pageIndex: number,
-    objectId: string,
-    updates: Partial<TextObjectData>
-  ): void {
+  modifyTextObject(pageIndex: number, objectId: string, updates: Partial<TextObjectData>): void {
     if (!this.internalDoc) throw new Error('No document loaded');
 
     const page = this.internalDoc.pages[pageIndex];
@@ -135,12 +126,7 @@ export class PdfEditor {
     this.internalDoc.modifiedAt = Date.now();
   }
 
-  moveObject(
-    pageIndex: number,
-    objectId: string,
-    newX: number,
-    newY: number
-  ): void {
+  moveObject(pageIndex: number, objectId: string, newX: number, newY: number): void {
     if (!this.internalDoc) throw new Error('No document loaded');
 
     const page = this.internalDoc.pages[pageIndex];
@@ -213,7 +199,7 @@ export class PdfEditor {
       if (page.objects.length === 0) continue;
 
       const pdfPage = this.pdfDoc.getPage(page.index);
-      const { width, height } = pdfPage.getSize();
+      const { height } = pdfPage.getSize();
 
       for (const obj of page.objects) {
         if (obj.type === 'text') {
@@ -222,7 +208,6 @@ export class PdfEditor {
             x: obj.x,
             y: height - obj.y - textData.fontSize,
             size: textData.fontSize,
-            color: undefined,
           });
         }
       }

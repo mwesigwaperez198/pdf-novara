@@ -1,4 +1,4 @@
-import { FolderOpen, Save, Download, RotateCcw, RotateCw } from 'lucide-react';
+import { FolderOpen, Download, RotateCcw, RotateCw } from 'lucide-react';
 import { useDocumentStore } from '../../store/useDocumentStore';
 import { useUIStore } from '../../store/useUIStore';
 import { createFileInput } from '../../utils/file';

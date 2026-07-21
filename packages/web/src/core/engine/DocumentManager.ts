@@ -1,7 +1,6 @@
-import type { PDFDocument, SupportedFormat } from '../types/document';
+import type { PDFDocument } from '../types/document';
 import { PdfRenderer } from './PdfRenderer';
 import { PdfEditor } from './PdfEditor';
-import { parsePdf } from '../parsers/PdfParser';
 import { parseDocx } from '../parsers/DocxParser';
 import { parseMarkdown } from '../parsers/MarkdownParser';
 import { parseText } from '../parsers/TextParser';
@@ -46,14 +45,6 @@ export class DocumentManager {
     this.documents.set(document.id, document);
     this.activeDocId = document.id;
     return document;
-  }
-
-  async openArrayBuffer(data: ArrayBuffer, filename: string): Promise<PDFDocument> {
-    const format = getFormatFromFilename(filename);
-    if (format === 'pdf') {
-      return this.openPdf(data, filename);
-    }
-    throw new Error(`Direct buffer open only supports PDF. Use openFile for other formats.`);
   }
 
   private async openPdf(data: ArrayBuffer, name: string): Promise<PDFDocument> {

@@ -1,6 +1,5 @@
-import { Image, Square, Circle, Minus, Stamp, Signature } from 'lucide-react';
+import { Image, Square, Circle, Minus, Stamp, PenTool } from 'lucide-react';
 import { useEditorStore } from '../../store/useEditorStore';
-import { useUIStore } from '../../store/useUIStore';
 import { cn } from '../../utils/format';
 
 export function InsertTools() {
@@ -58,7 +57,7 @@ export function InsertTools() {
         className={cn('toolbar-btn', activeTool === 'signature' && 'toolbar-btn-active')}
         title="Signature"
       >
-        <Signature size={16} />
+        <PenTool size={16} />
       </button>
 
       <div className="toolbar-divider" />

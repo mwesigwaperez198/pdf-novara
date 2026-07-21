@@ -13,7 +13,7 @@ export async function parseDocx(data: ArrayBuffer, filename: string): Promise<PD
   const paragraphs = tempDiv.querySelectorAll('p, h1, h2, h3, h4, h5, h6, li, td, th');
 
   let yOffset = 40;
-  paragraphs.forEach((p, idx) => {
+  paragraphs.forEach((p) => {
     const text = p.textContent?.trim();
     if (text) {
       const isHeading = /^H[1-6]$/.test(p.tagName);

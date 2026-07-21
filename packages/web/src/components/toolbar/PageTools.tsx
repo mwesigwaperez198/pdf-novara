@@ -3,8 +3,6 @@ import {
   Trash2,
   ArrowUp,
   ArrowDown,
-  Merge,
-  Scissors,
 } from 'lucide-react';
 import { useDocumentStore } from '../../store/useDocumentStore';
 import { useUIStore } from '../../store/useUIStore';
@@ -21,8 +19,8 @@ export function PageTools() {
     if (!doc) return;
     try {
       pdfEditor.rotatePage(currentPage, 90);
-      showToast('Page rotated 90°', 'info');
-    } catch (err) {
+      showToast('Page rotated 90', 'info');
+    } catch {
       showToast('Failed to rotate page', 'error');
     }
   };
@@ -38,7 +36,7 @@ export function PageTools() {
         setCurrentPage(Math.max(0, totalPages - 2));
       }
       showToast('Page deleted', 'info');
-    } catch (err) {
+    } catch {
       showToast('Failed to delete page', 'error');
     }
   };
@@ -55,7 +53,7 @@ export function PageTools() {
       </button>
 
       <span className="text-[11px] text-surface-400 px-1 min-w-[60px] text-center font-mono">
-        {totalPages > 0 ? `${currentPage + 1} / ${totalPages}` : '—'}
+        {totalPages > 0 ? `${currentPage + 1} / ${totalPages}` : '---'}
       </span>
 
       <button
@@ -69,7 +67,7 @@ export function PageTools() {
 
       <div className="toolbar-divider" />
 
-      <button onClick={handleRotate} className="toolbar-btn" title="Rotate page 90°">
+      <button onClick={handleRotate} className="toolbar-btn" title="Rotate page 90">
         <RotateCw size={16} />
       </button>
 

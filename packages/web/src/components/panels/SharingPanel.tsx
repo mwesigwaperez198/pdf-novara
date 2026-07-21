@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, Copy, Lock, Clock } from 'lucide-react';
+import { Copy, Lock, Clock } from 'lucide-react';
 import { useUIStore } from '../../store/useUIStore';
 
 export function SharingPanel() {

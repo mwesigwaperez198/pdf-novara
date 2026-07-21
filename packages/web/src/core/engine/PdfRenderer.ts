@@ -1,18 +1,17 @@
 import * as pdfjsLib from 'pdfjs-dist';
 import type {
   PDFDocumentProxy,
-  PDFPageProxy,
   TextContent,
   TextItem,
 } from 'pdfjs-dist/types/src/display/api';
-import type { PDFDocument, PDFPage, TextContentItem, PageViewport } from '../types/document';
+import type { PageViewport } from '../types/document';
 import { generateId } from '../../utils/format';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
 
 export class PdfRenderer {
   private pdfDocument: PDFDocumentProxy | null = null;
-  private pageCache: Map<number, PDFPageProxy> = new Map();
+  private pageCache: Map<number, import('pdfjs-dist/types/src/display/api').PDFPageProxy> = new Map();
   private renderedCanvases: Map<number, HTMLCanvasElement> = new Map();
 
   async loadDocument(data: ArrayBuffer): Promise<PDFDocumentProxy> {
@@ -30,7 +29,7 @@ export class PdfRenderer {
     return this.pdfDocument?.numPages ?? 0;
   }
 
-  async getPage(index: number): Promise<PDFPageProxy> {
+  async getPage(index: number): Promise<import('pdfjs-dist/types/src/display/api').PDFPageProxy> {
     if (!this.pdfDocument) throw new Error('No document loaded');
     if (this.pageCache.has(index)) return this.pageCache.get(index)!;
     const page = await this.pdfDocument.getPage(index);
@@ -38,10 +37,7 @@ export class PdfRenderer {
     return page;
   }
 
-  async getPageViewport(
-    index: number,
-    scale: number = 1.0
-  ): Promise<PageViewport> {
+  async getPageViewport(index: number, scale: number = 1.0): Promise<PageViewport> {
     const page = await this.getPage(index);
     const viewport = page.getViewport({ scale });
     return {
@@ -82,7 +78,7 @@ export class PdfRenderer {
     this.renderedCanvases.set(pageIndex, canvas);
   }
 
-  async extractTextContent(pageIndex: number): Promise<TextContentItem[]> {
+  async extractTextContent(pageIndex: number) {
     const page = await this.getPage(pageIndex + 1);
     const content: TextContent = await page.getTextContent();
 
@@ -108,16 +104,16 @@ export class PdfRenderer {
       });
   }
 
-  async extractAllTextContent(): Promise<TextContentItem[]> {
+  async extractAllTextContent() {
     const pageCount = this.getPageCount();
-    const allContent: TextContentItem[] = [];
+    const allContent: Awaited<ReturnType<typeof this.extractTextContent>>[] = [];
 
     for (let i = 0; i < pageCount; i++) {
       const content = await this.extractTextContent(i);
-      allContent.push(...content);
+      allContent.push(content);
     }
 
-    return allContent;
+    return allContent.flat();
   }
 
   getRenderedCanvas(pageIndex: number): HTMLCanvasElement | undefined {

@@ -7,7 +7,6 @@ import {
 } from 'lucide-react';
 import { useDocumentStore } from '../../store/useDocumentStore';
 import { useUIStore } from '../../store/useUIStore';
-import { useDragAndDrop } from '../../hooks/useDragAndDrop';
 import { createFileInput } from '../../utils/file';
 
 export function Header() {
@@ -63,7 +62,7 @@ export function Header() {
                 }`}
               >
                 {tab.document.name}
-                {tab.isDirty && <span className="text-nova-400 ml-1">•</span>}
+                {tab.isDirty && <span className="text-nova-400 ml-1">&#x2022;</span>}
               </button>
             ))}
           </div>
