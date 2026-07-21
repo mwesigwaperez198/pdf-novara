@@ -1,0 +1,29 @@
+name = "nova-api-worker"
+main = "src/index.ts"
+compatibility_date = "2024-06-14"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+ENVIRONMENT = "production"
+
+[[r2_buckets]]
+binding = "DOCUMENTS_BUCKET"
+bucket_name = "nova-documents"
+
+[[kv_namespaces]]
+binding = "SESSIONS_KV"
+id = "placeholder-sessions-kv-id"
+
+[[kv_namespaces]]
+binding = "SHARES_KV"
+id = "placeholder-shares-kv-id"
+
+[env.production]
+routes = [
+  { pattern = "api.novara.dev/*", zone_name = "novara.dev" }
+]
+
+[env.staging]
+routes = [
+  { pattern = "api-staging.novara.dev/*", zone_name = "novara.dev" }
+]

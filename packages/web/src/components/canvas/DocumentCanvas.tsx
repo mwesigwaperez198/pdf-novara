@@ -1,0 +1,126 @@
+import { useRef, useCallback, useEffect, useState } from 'react';
+import { useDocumentStore } from '../../store/useDocumentStore';
+import { useEditorStore } from '../../store/useEditorStore';
+import { PageRenderer } from './PageRenderer';
+import { AnnotationLayer } from './AnnotationLayer';
+import { CANVAS_DEFAULTS } from '../../utils/constants';
+
+export function DocumentCanvas() {
+  const doc = useDocumentStore((s) => s.getActiveDocument());
+  const currentPage = useDocumentStore((s) => s.currentPage);
+  const zoom = useDocumentStore((s) => s.zoom);
+  const setCurrentPage = useDocumentStore((s) => s.setCurrentPage);
+  const totalPages = useDocumentStore((s) => s.totalPages);
+  const activeTool = useEditorStore((s) => s.activeTool);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [scrollProgress, setScrollProgress] = useState(0);
+
+  const handleWheel = useCallback(
+    (e: React.WheelEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        const delta = e.deltaY > 0 ? -0.05 : 0.05;
+        useDocumentStore.getState().setZoom(zoom + delta);
+      }
+    },
+    [zoom]
+  );
+
+  const handleScroll = useCallback(() => {
+    if (!containerRef.current || !doc) return;
+    const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
+    const progress = scrollTop / (scrollHeight - clientHeight || 1);
+    setScrollProgress(progress);
+
+    const pageElements = containerRef.current.querySelectorAll('[data-page-index]');
+    let visiblePage = 0;
+    pageElements.forEach((el) => {
+      const rect = el.getBoundingClientRect();
+      const containerRect = containerRef.current!.getBoundingClientRect();
+      if (rect.top < containerRect.top + containerRect.height / 2) {
+        visiblePage = parseInt(el.getAttribute('data-page-index') ?? '0');
+      }
+    });
+    if (visiblePage !== currentPage) {
+      setCurrentPage(visiblePage);
+    }
+  }, [doc, currentPage, setCurrentPage]);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    container.addEventListener('scroll', handleScroll, { passive: true });
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, [handleScroll]);
+
+  const cursorStyle = {
+    select: 'default',
+    hand: 'grab',
+    text: 'text',
+    draw: 'crosshair',
+    image: 'crosshair',
+    shape: 'crosshair',
+    eraser: 'crosshair',
+    highlight: 'crosshair',
+    stamp: 'crosshair',
+    signature: 'crosshair',
+  }[activeTool] ?? 'default';
+
+  if (!doc) return null;
+
+  return (
+    <div
+      ref={containerRef}
+      data-canvas-container
+      className="h-full overflow-auto bg-surface-950"
+      style={{ cursor: cursorStyle }}
+      onWheel={handleWheel}
+    >
+      <div className="flex flex-col items-center py-8 gap-4 min-h-full">
+        {doc.pages.map((page, index) => (
+          <div
+            key={page.index}
+            data-page-index={index}
+            className="relative shrink-0"
+            style={{
+              transform: `scale(${zoom})`,
+              transformOrigin: 'top center',
+            }}
+          >
+            <div
+              className="canvas-page relative"
+              style={{
+                width: page.width,
+                height: page.height,
+                boxShadow: CANVAS_DEFAULTS.pageShadow,
+              }}
+            >
+              <PageRenderer
+                pageIndex={index}
+                width={page.width}
+                height={page.height}
+              />
+              <AnnotationLayer
+                pageIndex={index}
+                width={page.width}
+                height={page.height}
+                objects={page.objects}
+                textContent={page.textContent}
+              />
+            </div>
+
+            <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] text-surface-500 font-mono">
+              {index + 1}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="fixed bottom-3 left-1/2 -translate-x-1/2 bg-surface-800/80 backdrop-blur-sm
+                      rounded-full px-4 py-1.5 text-[11px] text-surface-400 font-mono shadow-lg
+                      border border-surface-700/50">
+        Page {currentPage + 1} of {totalPages}
+      </div>
+    </div>
+  );
+}

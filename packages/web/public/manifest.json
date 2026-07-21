@@ -1,0 +1,17 @@
+{
+  "name": "NOVA Doc Editor",
+  "short_name": "NovaDoc",
+  "description": "Cloud-ready PDF & Document Editor by NOVARA",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#4f46e5",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

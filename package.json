@@ -1,0 +1,20 @@
+{
+  "name": "nova-doc-editor",
+  "version": "0.1.0",
+  "private": true,
+  "description": "NOVARA PDF & Document Editor — Cloud-ready, cross-platform",
+  "scripts": {
+    "dev": "pnpm --filter @nova/web dev",
+    "build": "pnpm --filter @nova/web build",
+    "preview": "pnpm --filter @nova/web preview",
+    "build:desktop": "pnpm --filter @nova/desktop build",
+    "dev:desktop": "pnpm --filter @nova/desktop dev",
+    "deploy:workers": "pnpm --filter @nova/api-worker deploy",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck"
+  },
+  "engines": {
+    "node": ">=18",
+    "pnpm": ">=8"
+  }
+}
