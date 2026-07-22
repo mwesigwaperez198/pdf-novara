@@ -6,7 +6,7 @@ import path from 'path';
 export default defineConfig({
   plugins: [
     react(),
-    VitePWA({
+    ...(!process.env.VITE_IS_TAURI ? [VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg'],
       manifest: {
@@ -38,7 +38,7 @@ export default defineConfig({
           }
         ]
       }
-    })
+    })] : [])
   ],
   resolve: {
     alias: {
