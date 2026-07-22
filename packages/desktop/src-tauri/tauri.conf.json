@@ -7,7 +7,7 @@
     "frontendDist": "../../web/dist",
     "devUrl": "http://localhost:5173",
     "beforeDevCommand": "pnpm --filter @nova/web dev",
-    "beforeBuildCommand": "VITE_IS_TAURI=true pnpm --filter @nova/web build"
+    "beforeBuildCommand": "cross-env VITE_IS_TAURI=true pnpm --filter @nova/web build"
   },
   "app": {
     "windows": [
