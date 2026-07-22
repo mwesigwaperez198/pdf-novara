@@ -26,12 +26,6 @@
     ],
     "security": {
       "csp": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://api.novara.dev https://nova-doc.novara.dev https://github.com https://api.github.com"
-    },
-    "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHJhbmdlciBzaWduaW5nIGtleQ==",
-      "endpoints": [
-        "https://github.com/mwesigwaperez198/pdf-novara/releases/latest/download/latest.json"
-      ]
     }
   },
   "bundle": {
@@ -69,7 +63,10 @@
     },
     "clipboard-manager": {},
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHJhbmdlciBzaWduaW5nIGtleQ=="
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHJhbmdlciBzaWduaW5nIGtleQ==",
+      "endpoints": [
+        "https://github.com/mwesigwaperez198/pdf-novara/releases/latest/download/latest.json"
+      ]
     }
   }
 }
