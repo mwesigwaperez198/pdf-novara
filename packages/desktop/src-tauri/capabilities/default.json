@@ -11,7 +11,7 @@
     "core:window:allow-maximize",
     "core:window:allow-unmaximize",
     "core:window:allow-start-dragging",
-    "core:window:allow-toggle-fullscreen",
+    "core:window:allow-set-fullscreen",
     "core:webview:default",
     "dialog:default",
     "dialog:allow-open",
