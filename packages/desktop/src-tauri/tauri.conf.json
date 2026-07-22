@@ -6,8 +6,8 @@
   "build": {
     "frontendDist": "../../web/dist",
     "devUrl": "http://localhost:5173",
-    "beforeDevCommand": "pnpm dev",
-    "beforeBuildCommand": ""
+    "beforeDevCommand": "pnpm --filter @nova/web dev",
+    "beforeBuildCommand": "pnpm --filter @nova/web build"
   },
   "app": {
     "windows": [

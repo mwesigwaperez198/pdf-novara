@@ -6,8 +6,9 @@ import type {
 } from 'pdfjs-dist/types/src/display/api';
 import type { PageViewport } from '../types/document';
 import { generateId } from '../../utils/format';
+import pdfjsWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorkerUrl;
 
 export class PdfRenderer {
   private pdfDocument: PDFDocumentProxy | null = null;

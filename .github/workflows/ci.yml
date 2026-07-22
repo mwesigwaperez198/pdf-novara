@@ -57,6 +57,5 @@ jobs:
         working-directory: packages/web
 
       - name: Build Tauri (check only)
-        run: |
-          cd packages/desktop
-          cargo check
+        run: cargo check
+        working-directory: packages/desktop/src-tauri
