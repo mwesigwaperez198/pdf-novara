@@ -111,7 +111,6 @@ async function handleDeleteDocument(id: string, env: Env): Promise<Response> {
     return json({ success: false, error: 'Document not found' }, 404);
   }
 
-  const meta: DocumentMeta = JSON.parse(metaStr);
   const objects = await env.DOCUMENTS_BUCKET.list({ prefix: `docs/${id}/` });
   for (const obj of objects.objects) {
     await env.DOCUMENTS_BUCKET.delete(obj.key);
