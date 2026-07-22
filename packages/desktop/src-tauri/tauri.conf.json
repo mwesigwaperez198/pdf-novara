@@ -42,6 +42,9 @@
       "nsis": {
         "installMode": "both",
         "installerIcon": "icons/icon.ico"
+      },
+      "webviewInstallMode": {
+        "type": "embedBootstrapper"
       }
     },
     "macOS": {
