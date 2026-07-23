@@ -7,7 +7,7 @@ interface PageRendererProps {
   height: number;
 }
 
-export function PageRenderer({ pageIndex, width, height }: PageRendererProps) {
+export function PageRenderer({ pageIndex }: PageRendererProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isRendered, setIsRendered] = useState(false);
 
@@ -18,8 +18,9 @@ export function PageRenderer({ pageIndex, width, height }: PageRendererProps) {
     const render = async () => {
       try {
         const renderer = documentManager.getRenderer();
-        if (!renderer.getDocument()) return;
-        await renderer.renderPageToCanvas(pageIndex, canvasRef.current!, 2.0);
+        const doc = renderer.getDocument();
+        if (!doc) return;
+        await renderer.renderPageToCanvas(pageIndex, canvasRef.current!, 1.5);
         if (!cancelled) setIsRendered(true);
       } catch (err) {
         if (!cancelled) console.error(`Failed to render page ${pageIndex}:`, err);
@@ -33,10 +34,7 @@ export function PageRenderer({ pageIndex, width, height }: PageRendererProps) {
   return (
     <canvas
       ref={canvasRef}
-      width={width * 2}
-      height={height * 2}
-      style={{ width, height }}
-      className={`transition-opacity duration-300 ${isRendered ? 'opacity-100' : 'opacity-0'}`}
+      className={`block transition-opacity duration-300 ${isRendered ? 'opacity-100' : 'opacity-0'}`}
     />
   );
 }

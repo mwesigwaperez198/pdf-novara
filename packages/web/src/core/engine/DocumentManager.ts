@@ -11,6 +11,7 @@ export class DocumentManager {
   private renderer: PdfRenderer;
   private editor: PdfEditor;
   private documents: Map<string, PDFDocument> = new Map();
+  private documentData: Map<string, ArrayBuffer> = new Map();
   private activeDocId: string | null = null;
 
   constructor() {
@@ -43,29 +44,50 @@ export class DocumentManager {
     }
 
     this.documents.set(document.id, document);
+    this.documentData.set(document.id, data);
     this.activeDocId = document.id;
     return document;
   }
 
   private async openPdf(data: ArrayBuffer, name: string): Promise<PDFDocument> {
     await this.renderer.loadDocument(data);
-    await this.editor.loadFromBytes(data);
 
-    const doc = this.editor.getDocument();
-    if (!doc) throw new Error('Failed to parse PDF');
+    const doc: PDFDocument = {
+      id: generateId(),
+      name,
+      data,
+      pages: [],
+      metadata: {
+        title: name,
+        author: '',
+        subject: '',
+        keywords: [],
+        creator: '',
+        producer: '',
+        creationDate: null,
+        modDate: null,
+        pageCount: this.renderer.getPageCount(),
+      },
+      createdAt: Date.now(),
+      modifiedAt: Date.now(),
+    };
 
     const pageCount = this.renderer.getPageCount();
     for (let i = 0; i < pageCount; i++) {
+      const viewport = await this.renderer.getPageViewport(i, 1.0);
       const textContent = await this.renderer.extractTextContent(i);
-      doc.pages[i].textContent = textContent;
+      doc.pages.push({
+        index: i,
+        width: viewport.width,
+        height: viewport.height,
+        rotation: 0,
+        viewport,
+        textContent,
+        annotations: [],
+        objects: [],
+      });
     }
 
-    doc.id = generateId();
-    doc.name = name;
-    doc.data = data;
-
-    this.documents.set(doc.id, doc);
-    this.activeDocId = doc.id;
     return doc;
   }
 
@@ -76,6 +98,11 @@ export class DocumentManager {
   getActiveDocument(): PDFDocument | undefined {
     if (!this.activeDocId) return undefined;
     return this.documents.get(this.activeDocId);
+  }
+
+  getActiveDocumentData(): ArrayBuffer | undefined {
+    if (!this.activeDocId) return undefined;
+    return this.documentData.get(this.activeDocId);
   }
 
   setActiveDocument(id: string): void {
@@ -90,6 +117,7 @@ export class DocumentManager {
 
   closeDocument(id: string): void {
     this.documents.delete(id);
+    this.documentData.delete(id);
     if (this.activeDocId === id) {
       const remaining = Array.from(this.documents.keys());
       this.activeDocId = remaining[0] ?? null;
@@ -108,6 +136,7 @@ export class DocumentManager {
     this.renderer.destroy();
     this.editor.destroy();
     this.documents.clear();
+    this.documentData.clear();
     this.activeDocId = null;
   }
 }

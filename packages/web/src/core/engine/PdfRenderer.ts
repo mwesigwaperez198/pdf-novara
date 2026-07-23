@@ -6,9 +6,11 @@ import type {
 } from 'pdfjs-dist/types/src/display/api';
 import type { PageViewport } from '../types/document';
 import { generateId } from '../../utils/format';
-import pdfjsWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorkerUrl;
+pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+  'pdfjs-dist/build/pdf.worker.min.mjs',
+  import.meta.url
+).toString();
 
 export class PdfRenderer {
   private pdfDocument: PDFDocumentProxy | null = null;
@@ -63,13 +65,12 @@ export class PdfRenderer {
     const ctx = canvas.getContext('2d');
     if (!ctx) throw new Error('Cannot get canvas context');
 
-    const dpr = window.devicePixelRatio || 1;
-    canvas.width = Math.floor(viewport.width * dpr);
-    canvas.height = Math.floor(viewport.height * dpr);
-    canvas.style.width = `${viewport.width}px`;
-    canvas.style.height = `${viewport.height}px`;
+    canvas.width = Math.floor(viewport.width);
+    canvas.height = Math.floor(viewport.height);
+    canvas.style.width = `${Math.floor(viewport.width)}px`;
+    canvas.style.height = `${Math.floor(viewport.height)}px`;
 
-    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     await page.render({
       canvasContext: ctx as unknown as CanvasRenderingContext2D,

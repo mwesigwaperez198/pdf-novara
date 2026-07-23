@@ -8,6 +8,7 @@ interface AnnotationLayerProps {
   height: number;
   objects: PageObject[];
   textContent: TextContentItem[];
+  isPdf?: boolean;
 }
 
 export function AnnotationLayer({
@@ -16,6 +17,7 @@ export function AnnotationLayer({
   height,
   objects,
   textContent,
+  isPdf = true,
 }: AnnotationLayerProps) {
   const activeTool = useEditorStore((s) => s.activeTool);
   const toolOptions = useEditorStore((s) => s.toolOptions);
@@ -58,24 +60,27 @@ export function AnnotationLayer({
       style={{ width, height }}
       onClick={handleCanvasClick}
     >
-      {textContent.map((item) => (
-        <div
-          key={item.id}
-          className="absolute select-none"
-          style={{
-            left: item.x,
-            top: item.y,
-            fontSize: `${item.fontSize}px`,
-            fontFamily: item.fontFamily,
-            fontWeight: item.fontWeight,
-            color: item.color,
-            whiteSpace: 'pre',
-            lineHeight: 1.2,
-          }}
-        >
-          {item.str}
-        </div>
-      ))}
+      {textContent.map((item) => {
+        const textTop = isPdf ? height - item.y - item.height : item.y;
+        return (
+          <div
+            key={item.id}
+            className="absolute select-none"
+            style={{
+              left: item.x,
+              top: textTop,
+              fontSize: `${item.fontSize}px`,
+              fontFamily: item.fontFamily,
+              fontWeight: item.fontWeight,
+              color: item.color,
+              whiteSpace: 'pre',
+              lineHeight: 1.2,
+            }}
+          >
+            {item.str}
+          </div>
+        );
+      })}
 
       {objects.map((obj) => (
         <div

@@ -6,6 +6,7 @@ import { Sidebar } from './Sidebar';
 import { DocumentCanvas } from '../canvas/DocumentCanvas';
 import { WelcomeScreen } from './WelcomeScreen';
 import { StatusBar } from './StatusBar';
+import { ExportDialog } from '../modals/ExportDialog';
 import { ToastContainer } from './ToastContainer';
 import { useDocumentStore } from '../../store/useDocumentStore';
 import { useUIStore } from '../../store/useUIStore';
@@ -50,6 +51,7 @@ export function AppShell() {
       )}
 
       <ToastContainer />
+      <ExportDialog />
     </div>
   );
 }

@@ -3,14 +3,12 @@ import { useDocumentStore } from '../../store/useDocumentStore';
 import { useEditorStore } from '../../store/useEditorStore';
 import { PageRenderer } from './PageRenderer';
 import { AnnotationLayer } from './AnnotationLayer';
-import { CANVAS_DEFAULTS } from '../../utils/constants';
 
 export function DocumentCanvas() {
   const doc = useDocumentStore((s) => s.getActiveDocument());
   const currentPage = useDocumentStore((s) => s.currentPage);
   const zoom = useDocumentStore((s) => s.zoom);
   const setCurrentPage = useDocumentStore((s) => s.setCurrentPage);
-  const totalPages = useDocumentStore((s) => s.totalPages);
   const activeTool = useEditorStore((s) => s.activeTool);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -68,11 +66,11 @@ export function DocumentCanvas() {
     <div
       ref={containerRef}
       data-canvas-container
-      className="h-full overflow-auto bg-surface-950"
+      className="h-full overflow-auto bg-surface-900"
       style={{ cursor: cursorStyle[activeTool] ?? 'default' }}
       onWheel={handleWheel}
     >
-      <div className="flex flex-col items-center py-8 gap-4 min-h-full">
+      <div className="flex flex-col items-center py-8 gap-6 min-h-full">
         {doc.pages.map((page, index) => (
           <div
             key={page.index}
@@ -84,11 +82,11 @@ export function DocumentCanvas() {
             }}
           >
             <div
-              className="canvas-page relative"
+              className="bg-white overflow-hidden"
               style={{
                 width: page.width,
                 height: page.height,
-                boxShadow: CANVAS_DEFAULTS.pageShadow,
+                boxShadow: '0 2px 12px rgba(0,0,0,0.15)',
               }}
             >
               <PageRenderer
@@ -110,12 +108,6 @@ export function DocumentCanvas() {
             </div>
           </div>
         ))}
-      </div>
-
-      <div className="fixed bottom-3 left-1/2 -translate-x-1/2 bg-surface-800/80 backdrop-blur-sm
-                      rounded-full px-4 py-1.5 text-[11px] text-surface-400 font-mono shadow-lg
-                      border border-surface-700/50">
-        Page {currentPage + 1} of {totalPages}
       </div>
     </div>
   );
