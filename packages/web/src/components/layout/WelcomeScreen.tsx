@@ -1,10 +1,6 @@
 import { useDocumentStore } from '../../store/useDocumentStore';
 import { useUIStore } from '../../store/useUIStore';
 import { createFileInput } from '../../utils/file';
-import {
-  FileUp,
-  FolderOpen,
-} from 'lucide-react';
 
 export function WelcomeScreen() {
   const openFile = useDocumentStore((s) => s.openFile);
@@ -28,35 +24,81 @@ export function WelcomeScreen() {
   };
 
   return (
-    <div className="h-full flex items-center justify-center bg-surface-950">
-      <div
-        className="w-[480px] p-12 rounded-2xl border-2 border-dashed border-surface-600
-                   hover:border-nova-500 transition-colors cursor-pointer text-center group"
-        onClick={handleOpen}
-        onDragOver={(e) => e.preventDefault()}
-        onDrop={handleDrop}
-      >
-        <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-surface-800 flex items-center justify-center
-                        group-hover:bg-nova-600/20 transition-colors">
-          <FolderOpen size={36} className="text-surface-400 group-hover:text-nova-400 transition-colors" />
+    <div
+      className="h-full flex items-center justify-center bg-surface-900"
+      onDragOver={(e) => e.preventDefault()}
+      onDrop={handleDrop}
+    >
+      <div className="text-center max-w-md">
+        {/* Logo */}
+        <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-nova-600 to-nova-800
+                        flex items-center justify-center shadow-lg shadow-nova-900/50">
+          <span className="text-2xl font-black text-white tracking-tight">N</span>
         </div>
 
-        <h2 className="text-xl font-semibold text-white mb-2">
-          Open a Document
-        </h2>
-        <p className="text-sm text-surface-400 mb-6">
-          Drag and drop a file here, or click to browse
+        <h1 className="text-2xl font-bold text-white mb-2">
+          NOVA Doc Editor
+        </h1>
+        <p className="text-sm text-surface-400 mb-8">
+          Open a PDF or document to get started
         </p>
 
-        <div className="flex items-center justify-center gap-2 text-xs text-surface-500">
-          <FileUp size={14} />
-          <span>PDF, DOCX, TXT, MD, PNG, JPEG, RTF</span>
+        {/* Open button */}
+        <button
+          onClick={handleOpen}
+          className="inline-flex items-center gap-2 px-6 py-3 rounded-lg
+                     bg-nova-600 hover:bg-nova-500 text-white font-semibold text-sm
+                     shadow-lg shadow-nova-900/50 transition-all duration-200
+                     hover:shadow-xl hover:shadow-nova-900/60 active:scale-[0.98]"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
+          </svg>
+          Open Document
+        </button>
+
+        {/* Drag hint */}
+        <p className="text-[11px] text-surface-500 mt-6">
+          or drag and drop a file anywhere
+        </p>
+
+        {/* Supported formats */}
+        <div className="flex items-center justify-center gap-2 mt-4 text-[10px] text-surface-600">
+          <span>PDF</span>
+          <span>•</span>
+          <span>DOCX</span>
+          <span>•</span>
+          <span>TXT</span>
+          <span>•</span>
+          <span>MD</span>
+          <span>•</span>
+          <span>PNG</span>
+          <span>•</span>
+          <span>JPEG</span>
         </div>
 
-        <div className="mt-6 flex items-center justify-center gap-3 text-[11px] text-surface-600">
-          <span>Ctrl+O to open</span>
-          <span className="text-surface-700">•</span>
-          <span>100MB max</span>
+        {/* Keyboard shortcut */}
+        <div className="mt-8 flex items-center justify-center gap-4 text-[10px] text-surface-600">
+          <span className="flex items-center gap-1">
+            <kbd className="px-1.5 py-0.5 rounded bg-surface-800 border border-surface-700 font-mono text-surface-400">
+              Ctrl
+            </kbd>
+            <span>+</span>
+            <kbd className="px-1.5 py-0.5 rounded bg-surface-800 border border-surface-700 font-mono text-surface-400">
+              O
+            </kbd>
+            <span className="ml-1">Open</span>
+          </span>
+          <span className="flex items-center gap-1">
+            <kbd className="px-1.5 py-0.5 rounded bg-surface-800 border border-surface-700 font-mono text-surface-400">
+              Ctrl
+            </kbd>
+            <span>+</span>
+            <kbd className="px-1.5 py-0.5 rounded bg-surface-800 border border-surface-700 font-mono text-surface-400">
+              E
+            </kbd>
+            <span className="ml-1">Export</span>
+          </span>
         </div>
       </div>
     </div>

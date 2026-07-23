@@ -1,8 +1,11 @@
+import { useState } from 'react';
 import { Header } from './Header';
-import { MainToolbar } from '../toolbar/MainToolbar';
+import { Ribbon, type RibbonTab } from '../toolbar/Ribbon';
+import { TabBar } from './TabBar';
 import { Sidebar } from './Sidebar';
 import { DocumentCanvas } from '../canvas/DocumentCanvas';
 import { WelcomeScreen } from './WelcomeScreen';
+import { StatusBar } from './StatusBar';
 import { ToastContainer } from './ToastContainer';
 import { useDocumentStore } from '../../store/useDocumentStore';
 import { useUIStore } from '../../store/useUIStore';
@@ -11,6 +14,7 @@ import { useDragAndDrop } from '../../hooks/useDragAndDrop';
 export function AppShell() {
   const tabs = useDocumentStore((s) => s.tabs);
   const sidebarOpen = useUIStore((s) => s.sidebarOpen);
+  const [ribbonTab, setRibbonTab] = useState<RibbonTab>('home');
   const { isDraggingOver, handleDragEnter, handleDragLeave, handleDragOver, handleDrop } = useDragAndDrop();
 
   return (
@@ -22,7 +26,8 @@ export function AppShell() {
       onDrop={handleDrop}
     >
       <Header />
-      {tabs.length > 0 && <MainToolbar />}
+      <Ribbon activeTab={ribbonTab} onTabChange={setRibbonTab} />
+      <TabBar />
 
       <div className="flex flex-1 overflow-hidden">
         {tabs.length > 0 && sidebarOpen && <Sidebar />}
@@ -31,6 +36,8 @@ export function AppShell() {
           {tabs.length > 0 ? <DocumentCanvas /> : <WelcomeScreen />}
         </main>
       </div>
+
+      <StatusBar />
 
       {isDraggingOver && (
         <div className="fixed inset-0 z-50 bg-nova-950/80 flex items-center justify-center pointer-events-none">

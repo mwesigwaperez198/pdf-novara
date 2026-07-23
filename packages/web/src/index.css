@@ -29,6 +29,14 @@
   ::selection {
     background: rgba(99, 102, 241, 0.3);
   }
+
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 }
 
 @layer components {
@@ -62,6 +70,14 @@
 
   .drop-zone-active {
     @apply border-2 border-dashed border-nova-400 bg-nova-600/10;
+  }
+
+  .drag-region {
+    -webkit-app-region: drag;
+  }
+
+  .no-drag {
+    -webkit-app-region: no-drag;
   }
 }
 
