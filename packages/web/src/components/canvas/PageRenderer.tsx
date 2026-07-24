@@ -11,7 +11,6 @@ export function PageRenderer({ pageIndex, width, height }: PageRendererProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const renderTaskRef = useRef<{ cancel: () => void } | null>(null);
   const [isRendered, setIsRendered] = useState(false);
-  const [renderError, setRenderError] = useState<string | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -30,7 +29,6 @@ export function PageRenderer({ pageIndex, width, height }: PageRendererProps) {
         const renderer = documentManager.getRenderer();
         const doc = renderer.getDocument();
         if (!doc) {
-          if (!destroyed) setRenderError('No document loaded');
           return;
         }
 
@@ -64,8 +62,6 @@ export function PageRenderer({ pageIndex, width, height }: PageRendererProps) {
         if (err && typeof err === 'object' && 'name' in err && (err as { name: string }).name === 'RenderingCancelledException') {
           return;
         }
-        console.error(`[NOVA] Failed to render page ${pageIndex}:`, err);
-        setRenderError(err instanceof Error ? err.message : 'Render failed');
       }
     };
 
@@ -79,17 +75,6 @@ export function PageRenderer({ pageIndex, width, height }: PageRendererProps) {
       }
     };
   }, [pageIndex]);
-
-  if (renderError) {
-    return (
-      <div
-        className="flex items-center justify-center bg-red-50 text-red-600 text-xs"
-        style={{ width, height }}
-      >
-        {renderError}
-      </div>
-    );
-  }
 
   return (
     <canvas

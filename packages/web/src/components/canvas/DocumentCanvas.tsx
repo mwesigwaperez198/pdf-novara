@@ -4,6 +4,7 @@ import { useEditorStore } from '../../store/useEditorStore';
 import { PageRenderer } from './PageRenderer';
 import { AnnotationLayer } from './AnnotationLayer';
 import { TextLayer } from './TextLayer';
+import { TextChangesOverlay } from './TextChangesOverlay';
 import type { PageObject, TextObjectData, ShapeData } from '../../core/types/document';
 
 export function DocumentCanvas() {
@@ -450,6 +451,12 @@ export function DocumentCanvas() {
                 pageIndex={index}
                 width={page.width}
                 height={page.height}
+              />
+
+              <TextChangesOverlay
+                pageIndex={index}
+                pageWidth={page.width}
+                pageHeight={page.height}
               />
 
               <AnnotationLayer
