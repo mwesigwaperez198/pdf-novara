@@ -7,19 +7,30 @@ export function WelcomeScreen() {
   const showToast = useUIStore((s) => s.showToast);
 
   const handleOpen = async () => {
-    const file = await createFileInput('.pdf,.docx,.txt,.md,.png,.jpg,.jpeg,.rtf');
-    if (file) {
-      await openFile(file);
-      showToast(`Opened: ${file.name}`, 'success');
+    try {
+      const file = await createFileInput('.pdf,.docx,.txt,.md,.png,.jpg,.jpeg,.rtf');
+      if (file) {
+        console.log('[NOVA] Opening file:', file.name, file.size, 'bytes');
+        await openFile(file);
+        showToast(`Opened: ${file.name}`, 'success');
+      }
+    } catch (err) {
+      console.error('[NOVA] Failed to open:', err);
+      showToast(`Failed to open: ${err instanceof Error ? err.message : 'Unknown error'}`, 'error');
     }
   };
 
   const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     const files = Array.from(e.dataTransfer.files);
     if (files.length > 0) {
-      await openFile(files[0]);
-      showToast(`Opened: ${files[0].name}`, 'success');
+      try {
+        await openFile(files[0]);
+        showToast(`Opened: ${files[0].name}`, 'success');
+      } catch (err) {
+        showToast(`Failed to open: ${err instanceof Error ? err.message : 'Unknown error'}`, 'error');
+      }
     }
   };
 
@@ -30,7 +41,6 @@ export function WelcomeScreen() {
       onDrop={handleDrop}
     >
       <div className="text-center max-w-md">
-        {/* Logo */}
         <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-nova-600 to-nova-800
                         flex items-center justify-center shadow-lg shadow-nova-900/50">
           <span className="text-2xl font-black text-white tracking-tight">N</span>
@@ -43,7 +53,6 @@ export function WelcomeScreen() {
           Open a PDF or document to get started
         </p>
 
-        {/* Open button */}
         <button
           onClick={handleOpen}
           className="inline-flex items-center gap-2 px-6 py-3 rounded-lg
@@ -57,46 +66,30 @@ export function WelcomeScreen() {
           Open Document
         </button>
 
-        {/* Drag hint */}
         <p className="text-[11px] text-surface-500 mt-6">
           or drag and drop a file anywhere
         </p>
 
-        {/* Supported formats */}
         <div className="flex items-center justify-center gap-2 mt-4 text-[10px] text-surface-600">
-          <span>PDF</span>
-          <span>•</span>
-          <span>DOCX</span>
-          <span>•</span>
-          <span>TXT</span>
-          <span>•</span>
-          <span>MD</span>
-          <span>•</span>
-          <span>PNG</span>
-          <span>•</span>
+          <span>PDF</span><span>·</span>
+          <span>DOCX</span><span>·</span>
+          <span>TXT</span><span>·</span>
+          <span>MD</span><span>·</span>
+          <span>PNG</span><span>·</span>
           <span>JPEG</span>
         </div>
 
-        {/* Keyboard shortcut */}
         <div className="mt-8 flex items-center justify-center gap-4 text-[10px] text-surface-600">
           <span className="flex items-center gap-1">
-            <kbd className="px-1.5 py-0.5 rounded bg-surface-800 border border-surface-700 font-mono text-surface-400">
-              Ctrl
-            </kbd>
+            <kbd className="px-1.5 py-0.5 rounded bg-surface-800 border border-surface-700 font-mono text-surface-400">Ctrl</kbd>
             <span>+</span>
-            <kbd className="px-1.5 py-0.5 rounded bg-surface-800 border border-surface-700 font-mono text-surface-400">
-              O
-            </kbd>
+            <kbd className="px-1.5 py-0.5 rounded bg-surface-800 border border-surface-700 font-mono text-surface-400">O</kbd>
             <span className="ml-1">Open</span>
           </span>
           <span className="flex items-center gap-1">
-            <kbd className="px-1.5 py-0.5 rounded bg-surface-800 border border-surface-700 font-mono text-surface-400">
-              Ctrl
-            </kbd>
+            <kbd className="px-1.5 py-0.5 rounded bg-surface-800 border border-surface-700 font-mono text-surface-400">Ctrl</kbd>
             <span>+</span>
-            <kbd className="px-1.5 py-0.5 rounded bg-surface-800 border border-surface-700 font-mono text-surface-400">
-              E
-            </kbd>
+            <kbd className="px-1.5 py-0.5 rounded bg-surface-800 border border-surface-700 font-mono text-surface-400">E</kbd>
             <span className="ml-1">Export</span>
           </span>
         </div>

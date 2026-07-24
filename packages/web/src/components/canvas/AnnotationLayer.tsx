@@ -1,6 +1,5 @@
-import React, { useRef, useCallback } from 'react';
-import { useEditorStore } from '../../store/useEditorStore';
-import type { PageObject, TextObjectData, TextContentItem } from '../../core/types/document';
+import React, { useRef, useState, useEffect } from 'react';
+import type { PageObject, TextObjectData, ShapeData, TextContentItem } from '../../core/types/document';
 
 interface AnnotationLayerProps {
   pageIndex: number;
@@ -8,7 +7,11 @@ interface AnnotationLayerProps {
   height: number;
   objects: PageObject[];
   textContent: TextContentItem[];
-  isPdf?: boolean;
+  selectedIds: string[];
+  editingTextId: string | null;
+  onObjectMouseDown: (e: React.MouseEvent, obj: PageObject, pageIndex: number) => void;
+  onObjectDoubleClick: (e: React.MouseEvent, obj: PageObject, pageIndex: number) => void;
+  onTextEditComplete: (text: string) => void;
 }
 
 export function AnnotationLayer({
@@ -17,51 +20,16 @@ export function AnnotationLayer({
   height,
   objects,
   textContent,
-  isPdf = true,
+  selectedIds,
+  editingTextId,
+  onObjectMouseDown,
+  onObjectDoubleClick,
+  onTextEditComplete,
 }: AnnotationLayerProps) {
-  const activeTool = useEditorStore((s) => s.activeTool);
-  const toolOptions = useEditorStore((s) => s.toolOptions);
-  const selectedElements = useEditorStore((s) => s.selectedElements);
-  const selectElement = useEditorStore((s) => s.selectElement);
-  const layerRef = useRef<HTMLDivElement>(null);
-
-  const handleCanvasClick = useCallback(
-    (e: React.MouseEvent) => {
-      if (!layerRef.current) return;
-      const rect = layerRef.current.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-
-      if (activeTool === 'text') {
-        const newText: TextObjectData = {
-          text: 'Click to edit',
-          fontSize: toolOptions.fontSize,
-          fontFamily: toolOptions.fontFamily,
-          fontWeight: toolOptions.fontWeight,
-          fontStyle: 'normal',
-          color: toolOptions.strokeColor,
-          alignment: 'left',
-          lineHeight: 1.5,
-        };
-
-        const event = new CustomEvent('add-text-object', {
-          detail: { pageIndex, x, y, data: newText },
-        });
-        window.dispatchEvent(event);
-      }
-    },
-    [activeTool, toolOptions, pageIndex]
-  );
-
   return (
-    <div
-      ref={layerRef}
-      className="absolute inset-0"
-      style={{ width, height }}
-      onClick={handleCanvasClick}
-    >
+    <div className="absolute inset-0" style={{ width, height, pointerEvents: 'none' }}>
       {textContent.map((item) => {
-        const textTop = isPdf ? height - item.y - item.height : item.y;
+        const textTop = height - item.y - item.height;
         return (
           <div
             key={item.id}
@@ -72,9 +40,11 @@ export function AnnotationLayer({
               fontSize: `${item.fontSize}px`,
               fontFamily: item.fontFamily,
               fontWeight: item.fontWeight,
-              color: item.color,
+              color: '#333',
               whiteSpace: 'pre',
               lineHeight: 1.2,
+              opacity: 0.4,
+              pointerEvents: 'none',
             }}
           >
             {item.str}
@@ -82,65 +52,156 @@ export function AnnotationLayer({
         );
       })}
 
-      {objects.map((obj) => (
-        <div
-          key={obj.id}
-          className={`absolute border-2 ${
-            selectedElements.includes(obj.id)
-              ? 'border-nova-400 ring-2 ring-nova-400/30'
-              : 'border-transparent hover:border-nova-300/50'
-          }`}
-          style={{
-            left: obj.x,
-            top: obj.y,
-            width: obj.width,
-            height: obj.height,
-            transform: `rotate(${obj.rotation}deg)`,
-          }}
-          onClick={(e) => {
-            e.stopPropagation();
-            selectElement(obj.id);
-          }}
-        >
-          {obj.type === 'text' && (
+      {objects.map((obj) => {
+        const isSelected = selectedIds.includes(obj.id);
+
+        if (obj.type === 'text') {
+          const data = obj.data as TextObjectData;
+          if (editingTextId === obj.id) {
+            return (
+              <InlineTextEdit
+                key={obj.id}
+                obj={obj}
+                data={data}
+                onComplete={onTextEditComplete}
+              />
+            );
+          }
+          return (
             <div
-              className="w-full h-full p-1 overflow-hidden cursor-text"
+              key={obj.id}
+              className="absolute cursor-move select-none"
               style={{
-                fontSize: `${(obj.data as TextObjectData).fontSize}px`,
-                fontFamily: (obj.data as TextObjectData).fontFamily,
-                fontWeight: (obj.data as TextObjectData).fontWeight,
-                color: (obj.data as TextObjectData).color,
-                fontStyle: (obj.data as TextObjectData).fontStyle,
-                textAlign: (obj.data as TextObjectData).alignment,
+                left: obj.x,
+                top: obj.y,
+                width: obj.width,
+                height: obj.height,
+                fontSize: `${data.fontSize}px`,
+                fontFamily: data.fontFamily,
+                fontWeight: data.fontWeight,
+                fontStyle: data.fontStyle,
+                color: data.color,
+                textAlign: data.alignment as 'left' | 'center' | 'right',
+                lineHeight: data.lineHeight,
+                whiteSpace: 'pre-wrap',
+                overflow: 'hidden',
+                pointerEvents: 'auto',
+                border: isSelected ? '2px solid #3b82f6' : '1px solid transparent',
+                backgroundColor: isSelected ? 'rgba(59,130,246,0.05)' : 'transparent',
+                padding: '2px 4px',
+                borderRadius: '2px',
               }}
+              onMouseDown={(e) => onObjectMouseDown(e, obj, pageIndex)}
+              onDoubleClick={(e) => onObjectDoubleClick(e, obj, pageIndex)}
             >
-              {(obj.data as TextObjectData).text}
+              {data.text}
             </div>
-          )}
+          );
+        }
 
-          {obj.type === 'shape' && (
+        if (obj.type === 'shape') {
+          const data = obj.data as ShapeData;
+          const isCircle = data.shapeType === 'circle';
+          return (
             <div
-              className="w-full h-full"
+              key={obj.id}
+              className="absolute cursor-move"
               style={{
-                border: `${(obj.data as { strokeWidth?: number }).strokeWidth ?? 2}px solid ${
-                  (obj.data as { strokeColor?: string }).strokeColor ?? '#000'
-                }`,
-                borderRadius: 'shapeType' in obj.data && (obj.data as { shapeType?: string }).shapeType === 'circle' ? '50%' : '0',
-                backgroundColor: (obj.data as { fillColor?: string }).fillColor ?? 'transparent',
+                left: obj.x,
+                top: obj.y,
+                width: obj.width,
+                height: obj.height,
+                transform: `rotate(${obj.rotation}deg)`,
+                border: `${data.strokeWidth}px solid ${data.strokeColor}`,
+                borderRadius: isCircle ? '50%' : '2px',
+                backgroundColor: data.fillColor === 'transparent' ? 'transparent' : data.fillColor,
+                pointerEvents: 'auto',
+                boxShadow: isSelected ? '0 0 0 2px #3b82f6' : 'none',
               }}
+              onMouseDown={(e) => onObjectMouseDown(e, obj, pageIndex)}
             />
-          )}
+          );
+        }
 
-          {obj.type === 'image' && (
+        if (obj.type === 'image') {
+          const data = obj.data as { src?: string };
+          return (
             <img
-              src={(obj.data as { src?: string }).src}
+              key={obj.id}
+              src={data.src}
               alt="Inserted"
-              className="w-full h-full object-contain"
+              className="absolute cursor-move object-contain"
+              style={{
+                left: obj.x,
+                top: obj.y,
+                width: obj.width,
+                height: obj.height,
+                transform: `rotate(${obj.rotation}deg)`,
+                pointerEvents: 'auto',
+                border: isSelected ? '2px solid #3b82f6' : 'none',
+              }}
               draggable={false}
+              onMouseDown={(e) => onObjectMouseDown(e, obj, pageIndex)}
             />
-          )}
-        </div>
-      ))}
+          );
+        }
+
+        return null;
+      })}
     </div>
+  );
+}
+
+function InlineTextEdit({
+  obj,
+  data,
+  onComplete,
+}: {
+  obj: PageObject;
+  data: TextObjectData;
+  onComplete: (text: string) => void;
+}) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [text, setText] = useState(data.text);
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.focus();
+      textareaRef.current.select();
+    }
+  }, []);
+
+  return (
+    <textarea
+      ref={textareaRef}
+      value={text}
+      onChange={(e) => setText(e.target.value)}
+      onBlur={() => onComplete(text)}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') onComplete(text);
+        e.stopPropagation();
+      }}
+      className="absolute resize-none outline-none"
+      style={{
+        left: obj.x,
+        top: obj.y,
+        width: Math.max(obj.width, 150),
+        height: Math.max(obj.height, data.fontSize * 3),
+        fontSize: `${data.fontSize}px`,
+        fontFamily: data.fontFamily,
+        fontWeight: data.fontWeight,
+        fontStyle: data.fontStyle,
+        color: data.color,
+        textAlign: data.alignment as 'left' | 'center' | 'right',
+        lineHeight: data.lineHeight,
+        padding: '4px',
+        border: '2px solid #3b82f6',
+        backgroundColor: 'rgba(255,255,255,0.95)',
+        borderRadius: '3px',
+        pointerEvents: 'auto',
+        zIndex: 200,
+        boxShadow: '0 2px 8px rgba(59,130,246,0.2)',
+      }}
+    />
   );
 }

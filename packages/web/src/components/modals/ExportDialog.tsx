@@ -5,7 +5,7 @@ import { useUIStore } from '../../store/useUIStore';
 import { PdfExporter } from '../../core/engine/exporters/PdfExporter';
 import { DocxExporter } from '../../core/engine/exporters/DocxExporter';
 import { ImageExporter } from '../../core/engine/exporters/ImageExporter';
-import { pdfEditor } from '../../core/engine/PdfEditor';
+import { documentManager } from '../../core/engine/DocumentManager';
 
 type ExportFormat = 'pdf' | 'docx' | 'png' | 'jpeg';
 
@@ -17,15 +17,28 @@ export function ExportDialog() {
   const closeDialog = useUIStore((s) => s.closeDialog);
   const showToast = useUIStore((s) => s.showToast);
   const doc = useDocumentStore((s) => s.getActiveDocument());
+  const textEdits = useDocumentStore((s) => s.textEdits);
+  const deletedTextIds = useDocumentStore((s) => s.deletedTextIds);
+  const activeTab = useDocumentStore((s) => s.getActiveTab());
 
   if (dialogOpen !== 'export' || !doc) return null;
 
   const handleExport = async () => {
     setIsExporting(true);
     try {
+      const editor = documentManager.getEditor();
+      const docData = documentManager.getActiveDocumentData();
+
       switch (format) {
         case 'pdf': {
-          const bytes = await pdfEditor.applyEdits();
+          if (docData) {
+            await editor.loadFromBytes(docData);
+          }
+          const bytes = await editor.applyEdits({
+            textEdits,
+            deletedTextIds,
+            docId: activeTab?.id,
+          });
           await PdfExporter.exportDocument(doc, bytes.buffer as ArrayBuffer);
           break;
         }

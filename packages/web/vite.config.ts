@@ -51,7 +51,7 @@ export default defineConfig({
     }
   },
   optimizeDeps: {
-    exclude: ['pdfjs-dist']
+    include: ['pdfjs-dist']
   },
   build: {
     rollupOptions: {

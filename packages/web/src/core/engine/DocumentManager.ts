@@ -22,12 +22,14 @@ export class DocumentManager {
   async openFile(file: File): Promise<PDFDocument> {
     const format = getFormatFromFilename(file.name);
     if (!format) throw new Error(`Unsupported file format: ${file.name}`);
-
+    console.log('[NOVA] Reading file as ArrayBuffer...');
     const data = await readFileAsArrayBuffer(file);
+    console.log('[NOVA] File read, format:', format, 'size:', data.byteLength);
     let document: PDFDocument;
 
     switch (format) {
       case 'pdf':
+        console.log('[NOVA] Opening PDF...');
         document = await this.openPdf(data, file.name);
         break;
       case 'docx':
@@ -50,7 +52,9 @@ export class DocumentManager {
   }
 
   private async openPdf(data: ArrayBuffer, name: string): Promise<PDFDocument> {
+    console.log('[NOVA] Loading PDF into renderer...');
     await this.renderer.loadDocument(data);
+    console.log('[NOVA] PDF loaded, pages:', this.renderer.getPageCount());
 
     const doc: PDFDocument = {
       id: generateId(),

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
-import type { PDFDocument, DocumentTab, EditorOperation } from '../core/types/document';
+import type { PDFDocument, DocumentTab, EditorOperation, PageObject } from '../core/types/document';
 import { documentManager } from '../core/engine/DocumentManager';
+import { generateId } from '../utils/format';
 
 interface DocumentState {
   tabs: DocumentTab[];
@@ -10,6 +11,8 @@ interface DocumentState {
   zoom: number;
   isLoading: boolean;
   error: string | null;
+  textEdits: Record<string, Record<string, string>>;
+  deletedTextIds: Record<string, Set<string>>;
 
   openFile: (file: File) => Promise<void>;
   closeTab: (id: string) => void;
@@ -22,6 +25,11 @@ interface DocumentState {
   addOperation: (op: EditorOperation) => void;
   undo: () => void;
   redo: () => void;
+  addPageObject: (pageIndex: number, obj: Omit<PageObject, 'id'>) => void;
+  updatePageObject: (pageIndex: number, objId: string, updates: Partial<PageObject>) => void;
+  removePageObject: (pageIndex: number, objId: string) => void;
+  editTextItem: (pageIndex: number, itemId: string, newText: string) => void;
+  deleteTextItem: (pageIndex: number, itemId: string) => void;
   getActiveTab: () => DocumentTab | undefined;
   getActiveDocument: () => PDFDocument | undefined;
   clearError: () => void;
@@ -37,6 +45,8 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
   zoom: 1.0,
   isLoading: false,
   error: null,
+  textEdits: {},
+  deletedTextIds: {},
 
   openFile: async (file: File) => {
     set({ isLoading: true, error: null });
@@ -180,6 +190,105 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
             ? { ...t, undoStack: [...t.undoStack, op], redoStack: newRedo }
             : t
         ),
+      };
+    });
+  },
+
+  addPageObject: (pageIndex: number, obj: Omit<PageObject, 'id'>) => {
+    const newObj: PageObject = { ...obj, id: generateId() };
+    set((state) => ({
+      tabs: state.tabs.map((tab) =>
+        tab.id === state.activeTabId
+          ? {
+              ...tab,
+              isDirty: true,
+              document: {
+                ...tab.document,
+                pages: tab.document.pages.map((page) =>
+                  page.index === pageIndex
+                    ? { ...page, objects: [...page.objects, newObj] }
+                    : page
+                ),
+              },
+            }
+          : tab
+      ),
+    }));
+  },
+
+  updatePageObject: (pageIndex: number, objId: string, updates: Partial<PageObject>) => {
+    set((state) => ({
+      tabs: state.tabs.map((tab) =>
+        tab.id === state.activeTabId
+          ? {
+              ...tab,
+              isDirty: true,
+              document: {
+                ...tab.document,
+                pages: tab.document.pages.map((page) =>
+                  page.index === pageIndex
+                    ? {
+                        ...page,
+                        objects: page.objects.map((obj) =>
+                          obj.id === objId ? { ...obj, ...updates } : obj
+                        ),
+                      }
+                    : page
+                ),
+              },
+            }
+          : tab
+      ),
+    }));
+  },
+
+  removePageObject: (pageIndex: number, objId: string) => {
+    set((state) => ({
+      tabs: state.tabs.map((tab) =>
+        tab.id === state.activeTabId
+          ? {
+              ...tab,
+              isDirty: true,
+              document: {
+                ...tab.document,
+                pages: tab.document.pages.map((page) =>
+                  page.index === pageIndex
+                    ? { ...page, objects: page.objects.filter((obj) => obj.id !== objId) }
+                    : page
+                ),
+              },
+            }
+          : tab
+      ),
+    }));
+  },
+
+  editTextItem: (pageIndex: number, itemId: string, newText: string) => {
+    set((state) => {
+      const pageKey = `${state.activeTabId}-${pageIndex}`;
+      return {
+        textEdits: {
+          ...state.textEdits,
+          [pageKey]: {
+            ...(state.textEdits[pageKey] ?? {}),
+            [itemId]: newText,
+          },
+        },
+      };
+    });
+  },
+
+  deleteTextItem: (pageIndex: number, itemId: string) => {
+    set((state) => {
+      const pageKey = `${state.activeTabId}-${pageIndex}`;
+      const existing = state.deletedTextIds[pageKey] ?? new Set<string>();
+      const newSet = new Set(existing);
+      newSet.add(itemId);
+      return {
+        deletedTextIds: {
+          ...state.deletedTextIds,
+          [pageKey]: newSet,
+        },
       };
     });
   },

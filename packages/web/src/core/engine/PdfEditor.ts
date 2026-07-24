@@ -1,4 +1,4 @@
-import { PDFDocument, degrees } from 'pdf-lib';
+import { PDFDocument, degrees, rgb } from 'pdf-lib';
 import type { PDFDocument as InternalPDFDocument, PDFPage as InternalPDFPage, PageObject, TextObjectData } from '../types/document';
 import { generateId } from '../../utils/format';
 
@@ -192,14 +192,71 @@ export class PdfEditor {
     this.buildInternalDoc();
   }
 
-  async applyEdits(): Promise<Uint8Array> {
+  async applyEdits(options?: { textEdits?: Record<string, Record<string, string>>; deletedTextIds?: Record<string, Set<string>>; docId?: string }): Promise<Uint8Array> {
     if (!this.pdfDoc || !this.internalDoc) throw new Error('No document loaded');
 
     for (const page of this.internalDoc.pages) {
-      if (page.objects.length === 0) continue;
+      const pageKey = options?.docId ? `${options.docId}-${page.index}` : `${page.index}`;
+      const edits = options?.textEdits?.[pageKey] ?? {};
+      const deleted = options?.deletedTextIds?.[pageKey] ?? new Set<string>();
+      const hasPageChanges = page.objects.length > 0 || Object.keys(edits).length > 0 || deleted.size > 0;
+
+      if (!hasPageChanges) continue;
 
       const pdfPage = this.pdfDoc.getPage(page.index);
       const { height } = pdfPage.getSize();
+
+      for (const textId of deleted) {
+        const originalItem = page.textContent.find((t) => t.id === textId);
+        if (originalItem) {
+          const padding = 2;
+          pdfPage.drawRectangle({
+            x: originalItem.x - padding,
+            y: height - originalItem.y - originalItem.height - padding,
+            width: originalItem.width + padding * 2,
+            height: originalItem.height + padding * 2,
+            color: rgb(1, 1, 1),
+            borderWidth: 0,
+          });
+        }
+      }
+
+      for (const [textId, newText] of Object.entries(edits)) {
+        if (newText.trim() === '') {
+          const originalItem = page.textContent.find((t) => t.id === textId);
+          if (originalItem) {
+            const padding = 2;
+            pdfPage.drawRectangle({
+              x: originalItem.x - padding,
+              y: height - originalItem.y - originalItem.height - padding,
+              width: originalItem.width + padding * 2,
+              height: originalItem.height + padding * 2,
+              color: rgb(1, 1, 1),
+              borderWidth: 0,
+            });
+          }
+          continue;
+        }
+
+        const originalItem = page.textContent.find((t) => t.id === textId);
+        if (originalItem) {
+          const padding = 2;
+          pdfPage.drawRectangle({
+            x: originalItem.x - padding,
+            y: height - originalItem.y - originalItem.height - padding,
+            width: originalItem.width + padding * 2,
+            height: originalItem.height + padding * 2,
+            color: rgb(1, 1, 1),
+            borderWidth: 0,
+          });
+
+          pdfPage.drawText(newText, {
+            x: originalItem.x,
+            y: height - originalItem.y - originalItem.fontSize,
+            size: originalItem.fontSize,
+          });
+        }
+      }
 
       for (const obj of page.objects) {
         if (obj.type === 'text') {

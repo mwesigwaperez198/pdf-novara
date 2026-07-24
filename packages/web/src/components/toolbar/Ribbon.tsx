@@ -11,7 +11,7 @@ import { useDocumentStore } from '../../store/useDocumentStore';
 import { useUIStore } from '../../store/useUIStore';
 import { useEditorStore } from '../../store/useEditorStore';
 import { createFileInput } from '../../utils/file';
-import { pdfEditor } from '../../core/engine/PdfEditor';
+import { documentManager } from '../../core/engine/DocumentManager';
 
 export type RibbonTab = 'home' | 'edit' | 'insert' | 'page' | 'review' | 'view';
 
@@ -316,22 +316,41 @@ function PageLayoutTab() {
   const showToast = useUIStore((s) => s.showToast);
   const openFile = useDocumentStore((s) => s.openFile);
 
-  const handleRotate = () => {
-    if (!doc) return;
-    pdfEditor.rotatePage(currentPage, 90);
-    showToast('Page rotated 90°', 'info');
+  const ensureEditorLoaded = async () => {
+    const editor = documentManager.getEditor();
+    const docData = documentManager.getActiveDocumentData();
+    if (docData) {
+      await editor.loadFromBytes(docData);
+    }
+    return editor;
   };
 
-  const handleDeletePage = () => {
+  const handleRotate = async () => {
+    if (!doc) return;
+    try {
+      const editor = await ensureEditorLoaded();
+      editor.rotatePage(currentPage, 90);
+      showToast('Page rotated 90°', 'info');
+    } catch {
+      showToast('Rotate failed', 'error');
+    }
+  };
+
+  const handleDeletePage = async () => {
     if (!doc || totalPages <= 1) {
       showToast('Cannot delete the only page', 'warning');
       return;
     }
-    pdfEditor.deletePage(currentPage);
-    if (currentPage >= totalPages - 1) {
-      setCurrentPage(Math.max(0, totalPages - 2));
+    try {
+      const editor = await ensureEditorLoaded();
+      editor.deletePage(currentPage);
+      if (currentPage >= totalPages - 1) {
+        setCurrentPage(Math.max(0, totalPages - 2));
+      }
+      showToast('Page deleted', 'info');
+    } catch {
+      showToast('Delete failed', 'error');
     }
-    showToast('Page deleted', 'info');
   };
 
   const handleInsertPage = async () => {

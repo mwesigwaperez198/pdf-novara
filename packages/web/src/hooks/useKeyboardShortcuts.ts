@@ -35,6 +35,7 @@ export function useKeyboardShortcuts() {
 
       if (ctrl && e.key === 's') {
         e.preventDefault();
+        if (hasDoc) openDialog('export');
         return;
       }
 

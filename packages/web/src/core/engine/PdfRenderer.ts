@@ -7,10 +7,21 @@ import type {
 import type { PageViewport } from '../types/document';
 import { generateId } from '../../utils/format';
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-  'pdfjs-dist/build/pdf.worker.min.mjs',
-  import.meta.url
-).toString();
+function setupPdfWorker() {
+  try {
+    const workerUrl = new URL(
+      'pdfjs-dist/build/pdf.worker.min.mjs',
+      import.meta.url
+    ).toString();
+    pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
+    console.log('[NOVA] pdf.js worker set to:', workerUrl);
+  } catch (err) {
+    console.warn('[NOVA] Failed to set worker URL via import.meta.url, trying CDN fallback:', err);
+    pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+  }
+}
+
+setupPdfWorker();
 
 export class PdfRenderer {
   private pdfDocument: PDFDocumentProxy | null = null;
@@ -18,10 +29,18 @@ export class PdfRenderer {
   private renderedCanvases: Map<number, HTMLCanvasElement> = new Map();
 
   async loadDocument(data: ArrayBuffer): Promise<PDFDocumentProxy> {
+    console.log('[NOVA] PdfRenderer.loadDocument: data size =', data.byteLength);
     this.destroy();
-    const loadingTask = pdfjsLib.getDocument({ data });
-    this.pdfDocument = await loadingTask.promise;
-    return this.pdfDocument;
+    try {
+      const loadingTask = pdfjsLib.getDocument({ data });
+      console.log('[NOVA] pdf.js getDocument called, waiting for promise...');
+      this.pdfDocument = await loadingTask.promise;
+      console.log('[NOVA] PDF loaded successfully, pages:', this.pdfDocument.numPages);
+      return this.pdfDocument;
+    } catch (err) {
+      console.error('[NOVA] PdfRenderer.loadDocument FAILED:', err);
+      throw err;
+    }
   }
 
   getDocument(): PDFDocumentProxy | null {
@@ -41,7 +60,7 @@ export class PdfRenderer {
   }
 
   async getPageViewport(index: number, scale: number = 1.0): Promise<PageViewport> {
-    const page = await this.getPage(index);
+    const page = await this.getPage(index + 1);
     const viewport = page.getViewport({ scale });
     return {
       scale,
